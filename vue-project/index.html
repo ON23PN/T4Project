@@ -1,28 +1,14 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
   <head>
-    <meta charset="utf-8">
-    <title></title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Budget-Manager</title>
   </head>
   <body>
-    <?php
-    if(isset($_POST["submit"])){
-      mail("tutorialworktv@gmail.com", "Kontaktformular", 'Name: '.$_POST["name"].' Email: '.$_POST["email"].' Priorität: '.$_POST["priorität"].' Nachricht: '.$_POST["message"]);
-      ?>
-      <h1 style="color: green;">Das Kontaktformular wurde abgesendet!</h1>
-      <?php
-    }
-     ?>
-    <form action="index.php" method="post">
-      <input type="text" name="name" placeholder="Name" required><br>
-      <input type="email" name="email" placeholder="Email" required><br>
-      <select name="priorität">
-        <option value="hoch">Hoch</option>
-        <option value="mittel">Mittel</option>
-        <option value="gering">Gering</option>
-      </select><br>
-      <textarea name="message" rows="8" cols="80" required></textarea><br>
-      <button type="submit" name="submit">Absenden</button>
-    </form>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>
