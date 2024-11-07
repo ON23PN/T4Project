@@ -2,11 +2,27 @@
     <div class="inc-exp-container">
         <div>
             <h4>Einnahmen</h4>
-            <p id="money-plus" class="money plus">+0,00€</p>
+            <p id="money-plus" class="money plus">{{ income }}€</p>
         </div>
         <div>
             <h4>Ausgaben</h4>
-            <p id="money-minus" class="money minus">-0,00€</p>
+            <p id="money-minus" class="money minus">{{ expenses }}€</p>
         </div>
     </div>
 </template>
+
+<script setup>
+import { defineProps } from 'vue';
+
+//Definieren von erforderlichen Props für Einnahmen und Ausgaben
+const props = defineProps({
+    income: {
+        type: Number,
+        required: true,
+    },
+    expenses: {
+        type: Number,
+        required: true,
+    },
+});
+</script>
