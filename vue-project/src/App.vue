@@ -1,10 +1,10 @@
 <template>
     <Header />
     <div class="container">
-        <Guthaben :total="total" />
-        <EinnahmenAusgaben :income="income" :expenses="expenses" />
-        <Historie :transactions="transactions" />
-        <TransaktionHinzufügen />
+        <Guthaben :total="+total" />
+        <EinnahmenAusgaben :income="+income" :expenses="+expenses" />
+        <Historie :transactions="transactions" @transactionDeleted="handleTransactionDeleted" />
+        <TransaktionHinzufügen @transactionSubmitted="handleTransactionSubmitted" />
     </div>
 </template>
 
@@ -15,7 +15,11 @@ import EinnahmenAusgaben from './components/EinnahmenAusgaben.vue';
 import Historie from './components/Historie.vue';
 import TransaktionHinzufügen from './components/TransaktionHinzufügen.vue';
 
+import { useToast } from 'vue-toastification';
+
 import { ref, computed } from 'vue';
+
+const toast = useToast();
 
 //Beispiel Transaktionen:
 const transactions = ref([
@@ -50,4 +54,30 @@ const expenses = computed(() => {
             .toFixed(2)
     );
 });
+
+//Neue Transaktion hinzufügen
+const handleTransactionSubmitted = (transactionData) => {
+    transactions.value.push({
+        id: generateUniqueId(),
+        text: transactionData.text,
+        amount: transactionData.amount,
+    });
+
+    toast.success('Transaktion erfolgreich hinzugefügt');
+
+};
+
+//ID generieren
+const generateUniqueId = () => {
+    return Math.floor(Math.random() * 1000000);
+}
+
+//Transaktionen löschen
+const handleTransactionDeleted = (id) => {
+    transactions.value = transactions.value.filter((transaction) =>
+        transaction.id !== id);
+
+    toast.success('Transaktion erfolgreich gelöscht');
+};
+
 </script>
