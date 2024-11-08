@@ -17,16 +17,21 @@ import TransaktionHinzufügen from './components/TransaktionHinzufügen.vue';
 
 import { useToast } from 'vue-toastification';
 
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 
 const toast = useToast();
 
-//Beispiel Transaktionen:
-const transactions = ref([
-    { id: 1, text: 'Flower', amount: -19.25 },
-    { id: 2, text: 'Salary', amount: 20 },
-    { id: 3, text: 'Food', amount: 40 },
-]);
+//Funktion für Transaktionen
+const transactions = ref([]);
+
+onMounted(() => {
+    const savedTransactions = JSON.parse(localStorage.getItem
+        ('transactions'));
+
+    if (savedTransactions) {
+        transactions.value = savedTransactions;
+    }
+});
 
 //Guthaben berechnen
 const total = computed(() => {
@@ -63,6 +68,8 @@ const handleTransactionSubmitted = (transactionData) => {
         amount: transactionData.amount,
     });
 
+    saveTransactionsToLocalStorage();
+
     toast.success('Transaktion erfolgreich hinzugefügt');
 
 };
@@ -77,7 +84,14 @@ const handleTransactionDeleted = (id) => {
     transactions.value = transactions.value.filter((transaction) =>
         transaction.id !== id);
 
+    saveTransactionsToLocalStorage();
+
     toast.success('Transaktion erfolgreich gelöscht');
 };
+
+//Speicherung im Local Storage
+const saveTransactionsToLocalStorage = () => {
+    localStorage.setItem('transactions', JSON.stringify(transactions.value));
+}
 
 </script>
