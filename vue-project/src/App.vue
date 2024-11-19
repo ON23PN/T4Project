@@ -1,5 +1,6 @@
 <template>
     <Header />
+    <Login />
     <div class="container">
         <Guthaben :total="+total" />
         <EinnahmenAusgaben :income="+income" :expenses="+expenses" />
@@ -18,6 +19,7 @@ import TransaktionHinzufügen from './components/TransaktionHinzufügen.vue';
 import { useToast } from 'vue-toastification';
 
 import { ref, computed, onMounted } from 'vue';
+import Login from './components/login.vue';
 
 const toast = useToast();
 
