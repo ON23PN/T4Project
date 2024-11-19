@@ -4,21 +4,15 @@ require('db_connection.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Eingabewerte aus POST holen
-    $userEmail = $_POST['email'];
-    $userPassword = $_POST['password']; // Klartext Passwort
-    $userFirstname = $_POST['firstname'];
-    $userLastname = $_POST['lastname'];
-
-    // Validierung: Sicherstellen, dass alle Felder vorhanden sind
-    if (empty($userEmail) || empty($userPassword) || empty($userFirstname) || empty($userLastname)) {
-        echo json_encode(["message" => "Alle Felder müssen ausgefüllt sein."]);
-        exit;
-    }
+    $email = $_POST['email'];
+    $password = $_POST['password']; // Klartext Passwort
+    $firstname = $_POST['firstname'];
+    $lastname = $_POST['lastname'];
 
     // Überprüfen, ob die E-Mail bereits registriert wurde
-    $checkEmailSql = "SELECT email FROM users WHERE email = ?";
-    $stmt = $conn->prepare($checkEmailSql);
-    $stmt->bind_param("s", $userEmail);
+    $sql = "SELECT email FROM users WHERE email = ?"; // Tabelle 'users' verwenden
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $email);
     $stmt->execute();
     $stmt->store_result();
 
@@ -30,31 +24,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-
     // Benutzer in der Datenbank speichern
-    $insertUserSql = "INSERT INTO users (email, password, firstname, lastname) VALUES (?, ?, ?, ?)";
-    $insertStmt = $conn->prepare($insertUserSql);
-    $insertStmt->bind_param("ssss", $userEmail, $hashedPassword, $userFirstname, $userLastname);
-
+    $insertSql = "INSERT INTO users (email, password, firstname, lastname) VALUES (?, ?, ?, ?)";
+    $insertStmt = $conn->prepare($insertSql);
+    $insertStmt->bind_param("ssss", $email, $password, $firstname, $lastname);
+    
     if ($insertStmt->execute()) {
         // Benutzer erfolgreich registriert, Sitzung starten
-        session_start();
-        $_SESSION['email'] = $userEmail;
-        $_SESSION['firstname'] = $userFirstname;
-        $_SESSION['lastname'] = $userLastname;
+        session_start(); 
+        $_SESSION['email'] = $email;  
+        $_SESSION['firstname'] = $firstname; 
+        $_SESSION['lastname'] = $lastname; 
 
         echo json_encode(["message" => "Registrierung erfolgreich!"]);
     } else {
-        // Fehler bei der Registrierung
-        echo json_encode(["message" => "Es gab einen Fehler bei der Registrierung."]);
+        //Fehler bei der Registrierung
+        echo json_encode(["message" => "Fehler bei der Registrierung."]);
     }
 
     // Ressourcen freigeben
     $insertStmt->close();
     $conn->close();
-} else {
-    // Falls die Anfrage keine POST-Anfrage ist
-    echo json_encode(["message" => "Ungültige Anfrage."]);
 }
 ?>
-
