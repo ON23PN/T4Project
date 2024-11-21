@@ -2,13 +2,13 @@
   <h3>Neue Transaktion hinzufügen</h3>
   <form id="form" @submit.prevent="onSubmit">
     <div class="form-control">
-      <label for="text">Beschreibung</label>
-      <input type="text" id="text" v-model="text" placeholder="..." />
+      <label for="description">Beschreibung</label>
+      <input type="text" id="description" v-model="description" placeholder="..." />
     </div>
     <div class="form-control">
       <label for="amount">Menge <br />
         (negativ = Ausgabe, positiv = Einnahme)</label>
-      <input type="text" id="amount" v-model="amount" placeholder="..." />
+      <input type="number" id="amount" v-model="amount" placeholder="..." />
     </div>
     <button class="btn">Transaktion hinzufügen</button>
   </form>
@@ -18,32 +18,31 @@
 import { ref } from 'vue';
 import { useToast } from 'vue-toastification';
 
-const text = ref('');
+const description = ref('');  // Umbenennung von `text` zu `description`
 const amount = ref('');
 
 const emit = defineEmits(['transactionSubmitted']);
 
 const toast = useToast();
 
-//Funktion um das Formular zu verarbeiten
+// Funktion um das Formular zu verarbeiten
 const onSubmit = () => {
-  //Überprüfung ob alle Felder ausgefüllt sind
-  if (!text.value || !amount.value) {
+  // Überprüfung, ob alle Felder ausgefüllt sind
+  if (!description.value || !amount.value) {
     toast.error('Beide Felder müssen ausgefüllt sein!');
     return;
   }
 
-  //Erstellt ein neues Transaktionsobjekt, wenn beide Felder ausgefüllt sind
+  // Erstellt ein neues Transaktionsobjekt, wenn beide Felder ausgefüllt sind
   const transactionData = {
-    text: text.value,
-    amount: parseFloat(amount.value)
+    description: description.value,  // Sende `description` anstelle von `text`
+    amount: parseFloat(amount.value)  // Sicherstellen, dass der Betrag als Zahl übergeben wird
   }
 
   emit('transactionSubmitted', transactionData);
 
-  //Setzt die Eingabefelder zurück
-  text.value = '';
+  // Setzt die Eingabefelder zurück
+  description.value = '';
   amount.value = '';
 };
-
 </script>

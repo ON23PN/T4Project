@@ -1,4 +1,14 @@
-Header set Access-Control-Allow-Origin "http://localhost:5173"
-Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-Header set Access-Control-Allow-Headers "Content-Type"
-Header set Access-Control-Allow-Credentials "true"
+<IfModule mod_headers.c>
+    # CORS für die spezifische Domain erlauben
+    Header set Access-Control-Allow-Origin "http://localhost:5173"
+    Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+    Header set Access-Control-Allow-Credentials "true"
+</IfModule>
+
+# Optionale Regel, um sicherzustellen, dass OPTIONS-Anfragen ohne Fehler durchkommen
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_METHOD} OPTIONS
+    RewriteRule ^(.*)$ $1 [L]
+</IfModule>

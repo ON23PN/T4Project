@@ -4,62 +4,72 @@ header('Access-Control-Allow-Origin: http://localhost:8080');
 header('Access-Control-Allow-Credentials: true');
 
 ini_set('display_errors', 1);
-error_reporting(E_ALL); // Alle Fehler anzeigen, um beim Debugging zu helfen
+error_reporting(E_ALL);
 
-// Stelle die Verbindung zur Datenbank her
 require('db_connection.php');
 
-// Überprüfen, ob die Anfrage eine POST-Anfrage ist
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-    // Überprüfen, ob die notwendigen POST-Daten (E-Mail und Passwort) gesendet wurden
-    if (!isset($_POST['email']) || !isset($_POST['password'])) {
+    // Überprüfen, ob die erforderlichen POST-Daten vorhanden sind
+    if (!isset($_POST['username']) || !isset($_POST['password'])) {
         echo json_encode(["message" => "POST-Daten fehlen."]);
         exit;
     }
 
-    // Holen der E-Mail und des Passworts aus den POST-Daten
-    $email = $_POST['email'];
-    $password = $_POST['password'];
+    // Eingabewerte aus POST holen und bereinigen
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
 
-    // SQL-Abfrage, um den Benutzer anhand der E-Mail-Adresse zu finden
-    $sql = "SELECT email, password FROM users WHERE email = ?";
+    // SQL-Abfrage, um Benutzerdaten basierend auf dem Benutzernamen abzurufen
+    $sql = "SELECT id, firstname, lastname, username, email, password FROM users WHERE username = ?";
     $stmt = $conn->prepare($sql);
 
-    // Überprüfen, ob die SQL-Abfrage erfolgreich vorbereitet wurde
     if (!$stmt) {
-        echo json_encode(["message" => "Fehler bei der SQL-Abfrage-Vorbereitung: " . $conn->error]);
+        echo json_encode(["message" => "Fehler bei der SQL-Abfrage: " . $conn->error]);
         exit;
     }
 
-    // Binde die E-Mail-Parameter und führe die Abfrage aus
-    $stmt->bind_param("s", $email);
+    $stmt->bind_param("s", $username);
     $stmt->execute();
 
-    // Überprüfen, ob ein Fehler während der Abfrage-Ausführung aufgetreten ist
-    if ($stmt->errno) {
-        echo json_encode(["message" => "Fehler bei der SQL-Abfrage-Ausführung: " . $stmt->error]);
-        exit;
-    }
-
-    // Die E-Mail und das Passwort des Benutzers aus der Datenbank abfragen
-    $stmt->bind_result($fetchedEmail, $storedPassword);
+    // Benutzerinformationen in Variablen speichern
+    $stmt->bind_result($id, $firstname, $lastname, $username, $fetchedEmail, $storedPassword);
     $stmt->fetch();
 
-    // Überprüfen, ob ein Benutzer mit der angegebenen E-Mail existiert und ob das Passwort korrekt ist
-    if ($fetchedEmail && $storedPassword === $password) {
-        session_start(); // Startet eine neue PHP-Session
-        $_SESSION['email'] = $email; // Speichert die E-Mail-Adresse in der Session
-        echo json_encode(["message" => "Login erfolgreich!"]);
+    // Prüfen, ob der Benutzer existiert und das Passwort korrekt ist
+    if ($username && password_verify($password, $storedPassword)) {
+        session_start();
+
+        // Sicherheitsmaßnahme: Session-ID regenerieren, um Session-Hijacking zu verhindern
+        session_regenerate_id(true);
+
+        // Session-Daten setzen
+        $_SESSION['id'] = $id;
+        $_SESSION['firstname'] = $firstname;
+        $_SESSION['lastname'] = $lastname;
+        $_SESSION['username'] = $username;
+        $_SESSION['email'] = $fetchedEmail;
+
+        // Erfolgreiche Login-Antwort
+        echo json_encode([
+            "message" => "Login erfolgreich!",
+            "user" => [
+                "id" => $id,
+                "firstname" => $firstname,
+                "lastname" => $lastname,
+                "username" => $username,
+                "email" => $fetchedEmail
+            ]
+        ]);
     } else {
-        echo json_encode(["message" => "Ungültige E-Mail-Adresse oder Passwort."]);
+        // Fehler: Benutzername oder Passwort ungültig
+        echo json_encode(["message" => "Ungültiger Benutzername oder Passwort."]);
     }
 
-    // Schließe das Prepared Statement und die Datenbankverbindung
+    // Ressourcen freigeben
     $stmt->close();
     $conn->close();
 } else {
-    // Wenn keine POST-Anfrage empfangen wurde, gebe eine Fehlermeldung zurück
+    // Fehler: Ungültige Anfrage
     echo json_encode(["message" => "Ungültige Anfrage."]);
 }
 ?>

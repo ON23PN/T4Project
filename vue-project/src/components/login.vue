@@ -1,14 +1,13 @@
 <template>
-    <!-- Modal, das angezeigt wird, wenn das Login- oder Registrierungsformular sichtbar ist -->
     <div v-if="isVisible" class="modal-overlay" @click.self="close">
         <div class="modal-content">
-            <!-- Der Titel ändert sich je nachdem, ob der Nutzer sich einloggen oder registrieren möchte -->
+            <!-- Titel, abhängig vom Formularmodus (Login oder Registrierung) -->
             <h2>{{ isRegistering ? 'Jetzt Registrieren' : 'Login' }}</h2>
 
             <!-- Login Formular -->
             <form v-if="!isRegistering" @submit.prevent="submitLogin">
                 <div class="form-group">
-                    <input type="email" id="email" placeholder="E-Mail" v-model="email" required />
+                    <input type="text" id="username" placeholder="Benutzername" v-model="username" required />
                 </div>
                 <div class="form-group">
                     <input type="password" id="password" placeholder="Passwort" v-model="password" required />
@@ -26,13 +25,16 @@
                     <input type="text" id="lastname" placeholder="Nachname" v-model="lastname" required />
                 </div>
                 <div class="form-group">
+                    <input type="text" id="username" placeholder="Benutzername" v-model="username" required />
+                </div>
+                <div class="form-group">
                     <input type="email" id="email" placeholder="E-Mail" v-model="email" required />
                 </div>
                 <div class="form-group">
                     <input type="password" id="password" placeholder="Passwort" v-model="password" required />
                 </div>
                 <div class="form-group">
-                    <input type="password" id="confirmPassword" placeholder="Passwort wiederholen"
+                    <input type="password" id="confirmPassword" placeholder="Passwort bestätigen"
                         v-model="confirmPassword" required />
                 </div>
                 <button type="submit" class="submit-btn">Registrieren</button>
@@ -53,129 +55,108 @@
     </div>
 </template>
 
-<script>
-export default {
-    name: "Login",
-    data() {
-        return {
-            email: "", // E-Mail des Benutzers
-            password: "", // Passwort des Benutzers
-            confirmPassword: "", // Passwortbestätigung, nur für Registrierung
-            firstname: "", // Vorname, nur für Registrierung
-            lastname: "", // Nachname, nur für Registrierung
-            loginError: "", // Fehlernachricht bei fehlerhaften Anmeldedaten
-            isVisible: true, // Steuert, ob das Modal sichtbar ist
-            isRegistering: false, // Wechselt zwischen Login und Registrierung
-            showSuccessPopup: false, // Steuert das Anzeigen des Erfolgspopups
-        };
-    },
-    methods: {
-        // Wechselt zwischen dem Login- und dem Registrierungsmodus
-        toggleForm() {
-            this.isRegistering = !this.isRegistering;
-        },
+<script setup>
+import { ref } from 'vue';
 
-        // Logik für den Login
-        async submitLogin() {
-            const formData = new FormData();
-            formData.append("email", this.email);
-            formData.append("password", this.password);
+const email = ref('');
+const password = ref('');
+const confirmPassword = ref('');
+const firstname = ref('');
+const lastname = ref('');
+const username = ref('');
+const loginError = ref('');
+const isVisible = ref(true);
+const isRegistering = ref(false);
+const showSuccessPopup = ref(false);
 
-            try {
-                // Anfrage an den Server senden, um den Login zu verarbeiten
-                const response = await fetch('http://localhost/Projekt/vue-project/backend/login.php', {
-                    method: 'POST',
-                    body: formData,
-                    credentials: 'include', // Wichtige Option, um Cookies zu senden
-                });
+// Toggle between login and register forms
+const toggleForm = () => {
+    isRegistering.value = !isRegistering.value;
+};
 
-                // Logge die Antwort, um zu sehen, was vom Backend zurückkommt
-                const responseText = await response.text(); // Antwort als Text bekommen
-                console.log("Antwort Text: ", responseText);
+// Handle Login Submission
+const submitLogin = async () => {
+    const formData = new FormData();
+    formData.append('username', username.value);
+    formData.append('password', password.value);
 
-                // Versuch, die Antwort als JSON zu parsen
-                let result;
-                try {
-                    result = JSON.parse(responseText);
-                } catch (error) {
-                    console.error("Fehler beim Parsen der Antwort:", error);
-                    this.loginError = "Fehler beim Verarbeiten der Antwort.";
-                    return;
-                }
+    try {
+        const response = await fetch('http://localhost/Projekt/vue-project/backend/login.php', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include',
+        });
 
-                // Überprüfe, was vom Backend zurückkommt
-                console.log("Antwort JSON: ", result);
-
-                if (result.message === "Login erfolgreich!") {
-                    console.log("Login erfolgreich");
-                    this.showSuccessPopup = true; // Zeige das Popup an
-                    this.close(); // Schließt das Login-Popup nach erfolgreichem Login
-                } else {
-                    // Zeigt eine Fehlermeldung, wenn der Login fehlgeschlagen ist
-                    this.loginError = result.message || "Login fehlgeschlagen";
-                }
-            } catch (error) {
-                // Fehlerbehandlung für den Fall, dass die Anfrage nicht ausgeführt werden kann
-                console.error("Fehler beim Login:", error);
-                this.loginError = "Ein Fehler ist aufgetreten.";
-            }
-        },
-
-        // Funktion zum Schließen des Modals
-        close() {
-            this.isVisible = false; // Popup schließen
-            this.$emit('close'); // Event auslösen, um das Modal zu schließen (wenn nötig)
-        },
-
-        // Funktion für die Registrierung des Benutzers
-        async submitRegister() {
-            // Überprüft, ob die Passwörter übereinstimmen
-            if (this.password !== this.confirmPassword) {
-                this.loginError = "Passwörter stimmen nicht überein.";
-                return;
-            }
-
-            // Formulardaten für die Registrierung sammeln
-            const formData = new FormData();
-            formData.append("firstname", this.firstname);
-            formData.append("lastname", this.lastname);
-            formData.append("email", this.email);
-            formData.append("password", this.password);
-
-            try {
-                // Anfrage an den Server senden, um den Benutzer zu registrieren
-                const response = await fetch('http://localhost/Projekt/vue-project/backend/register.php', {
-                    method: 'POST',
-                    body: formData,
-                    credentials: 'include',
-                });
-
-                const result = await response.json();
-
-                if (result.message === "Registrierung erfolgreich!") {
-                    console.log("Registrierung erfolgreich");
-                    this.toggleForm(); // Wechsel zu Login nach erfolgreicher Registrierung
-                } else {
-                    // Zeigt eine Fehlermeldung an, wenn die Registrierung fehlgeschlagen ist
-                    this.loginError = result.message || "Registrierung fehlgeschlagen";
-                }
-            } catch (error) {
-                // Fehlerbehandlung für den Fall, dass die Anfrage nicht ausgeführt werden kann
-                console.error("Fehler bei der Registrierung:", error);
-                this.loginError = "Ein Fehler ist aufgetreten.";
-            }
-        },
-
-        // Funktion zum Schließen des Erfolgspopups
-        closeSuccessPopup() {
-            this.showSuccessPopup = false;
-            this.close(); // Schließt auch das Modal, nachdem der Benutzer auf "OK" geklickt hat
-        },
+        const result = await response.json();
+        if (result.message === 'Login erfolgreich!') {
+            showSuccessPopup.value = true;
+            close();
+            // You can emit an event to notify parent component about the login success
+            emit('login', result.user);
+        } else {
+            loginError.value = result.message || 'Login fehlgeschlagen';
+        }
+    } catch (error) {
+        loginError.value = 'Ein Fehler ist aufgetreten.';
     }
 };
+
+// Handle Registration Submission
+const submitRegister = async () => {
+    if (password.value !== confirmPassword.value) {
+        loginError.value = 'Passwörter stimmen nicht überein.';
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('firstname', firstname.value);
+    formData.append('lastname', lastname.value);
+    formData.append('username', username.value);
+    formData.append('email', email.value);
+    formData.append('password', password.value);
+
+    try {
+        const response = await fetch('http://localhost/Projekt/vue-project/backend/register.php', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include',
+        });
+
+        const result = await response.json();
+        if (result.message === 'Registrierung erfolgreich!') {
+            toggleForm();
+        } else {
+            loginError.value = result.message || 'Registrierung fehlgeschlagen';
+        }
+    } catch (error) {
+        loginError.value = 'Ein Fehler ist aufgetreten.';
+    }
+};
+
+// Close the modal
+const close = () => {
+    isVisible.value = false;
+    emit('close');
+};
+
+// Close the success popup
+const closeSuccessPopup = () => {
+    showSuccessPopup.value = false;
+    close();
+};
+
+const emit = defineEmits(['login', 'close']);
 </script>
 
 <style scoped>
+a {
+    color: rgb(25, 90, 130);
+}
+
+a:hover {
+    color: rgb(15, 46, 65);
+}
+
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -197,37 +178,39 @@ export default {
     max-width: 400px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     text-align: center;
+    z-index: 1060;
 }
 
-/* Stil für die Eingabefelder */
 .form-group {
     margin-bottom: 1rem;
 }
 
 .form-group input {
     width: 100%;
-    padding: 0.5rem;
+    padding: 0.75rem;
     border-radius: 4px;
     border: 1px solid #ddd;
+    box-sizing: border-box;
+    font-size: 16px;
 }
 
-/* Stil für den Submit-Button */
 .submit-btn {
-    background-color: rgb(130, 167, 180);
-    color: white;
-    padding: 0.5rem 1rem;
-    border: none;
+    font-size: 16px;
+    color: rgb(25, 90, 130);
+    text-decoration: none;
+    padding: 10px 20px;
+    border: 1px solid rgb(25, 90, 130);
     border-radius: 4px;
+    background-color: #fff;
     cursor: pointer;
-    margin-top: 1rem;
+    transition: background-color 0.3s, color 0.3s;
 }
 
-/* Hover-Effekt für den Submit-Button */
 .submit-btn:hover {
     background-color: rgb(25, 90, 130);
+    color: white;
 }
 
-/* Stil für den Schließen-Button */
 .close-btn {
     background-color: transparent;
     border: none;
@@ -239,14 +222,12 @@ export default {
     width: 100%;
 }
 
-/* Stil für die Fehlernachricht */
 .error-message {
     color: red;
     margin-top: 1rem;
     font-size: 0.9rem;
 }
 
-/* Stil für den Bestätigungs-Popup */
 .success-popup {
     position: fixed;
     top: 20%;
