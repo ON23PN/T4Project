@@ -7,36 +7,7 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 // Datenbankverbindung herstellen und automatisch Datenbank/Tabelle erstellen
-$host = 'localhost';
-$username = 'root'; // Ändere diesen Wert bei Bedarf
-$password = ''; // Ändere diesen Wert bei Bedarf
-$database = 'my_database';
-
-// Verbindung herstellen
-$conn = new mysqli($host, $username, $password);
-
-// Verbindung prüfen
-if ($conn->connect_error) {
-    die("Verbindung fehlgeschlagen: " . $conn->connect_error);
-}
-
-// Datenbank erstellen, falls sie nicht existiert
-$conn->query("CREATE DATABASE IF NOT EXISTS $database");
-
-// Datenbank auswählen
-$conn->select_db($database);
-
-// Tabelle erstellen, falls sie nicht existiert
-$conn->query("
-    CREATE TABLE IF NOT EXISTS users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        firstname VARCHAR(255) NOT NULL,
-        lastname VARCHAR(255) NOT NULL,
-        username VARCHAR(255) NOT NULL UNIQUE,
-        email VARCHAR(255) NOT NULL UNIQUE,
-        password VARCHAR(255) NOT NULL
-    )
-");
+require('db_connection.php'); // Verbindet sich mit der Datenbank und erstellt diese falls nötig
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Überprüfen, ob die erforderlichen POST-Daten vorhanden sind
