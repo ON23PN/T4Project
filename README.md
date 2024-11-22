@@ -4,6 +4,6 @@ Die Anwendung bietet:
 - Benutzerverwaltung: Sichere Anmeldung.
 - Transaktionserfassung: Einnahmen und Ausgaben mit Beschreibung und Betrag eingeben.
 - Historie: Übersicht aller Transaktionen.
-- Bearbeitung und Löschung: Korrekturmöglichkeiten bei Fehlern.
+- Löschen von Transaktionen: Korrekturmöglichkeiten bei Fehlern.
 
 Dieses Projekt richtet sich insbesondere an Studierende oder Personen mit begrenztem Budget, die ihre finanziellen Ressourcen besser verwalten möchten.
